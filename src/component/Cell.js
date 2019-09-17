@@ -16,8 +16,8 @@ function Cell(props) {
 }
 
 Cell.defaultProps = {
-  name: '1'
-}
+  name: '0'
+};
 
 const styles = {
   root: {

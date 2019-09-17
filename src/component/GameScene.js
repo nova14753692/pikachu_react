@@ -1,21 +1,32 @@
 import React from 'react';
 
 import { gameSceneSize } from '../utils/Utils';
+import getCellArray from '../utils/CellArrangeEngine';
 
 import Cell from './Cell';
 
 
 function GameScene() {
-  function createCellRowwidth(width) {
-    return Array(width).fill(<Cell />);
+  const cellNameArray = getCellArray(16, 8);
+
+  function createCellRowwidth(rowIndex, width) {
+    const row = [];
+    for (let i = 0; i < width; i++) {
+      row.push(<Cell name={cellNameArray[rowIndex][i]} />);
+    }
+    return row;
   }
 
   function createCellArray(height) {
-    return Array(height).fill(
-      <div style={styles.cellRow}>
-        {createCellRowwidth(16)}
-      </div>
-    );
+    const cellArray = [];
+    for (let i = 0; i < height; i++) {
+      cellArray.push(
+        <div style={styles.cellRow}>
+          {createCellRowwidth(i, 16)}
+        </div>
+      );
+    }
+    return cellArray;
   }
 
   return (

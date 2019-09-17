@@ -31,15 +31,20 @@ export function getCellArray(width, height, wrapArray = true) {
   return cells;
 }
 
+export function getCell(row, column) {
+  return { row, column };
+}
+
 /**
  * Check left cell
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @returns {boolean} True if left cell is in range, false otherwise
+ * @param {Array.<number>} cells Cell array
+ * @returns {boolean} True if left cell is in available, false otherwise
  */
-function checkLeft(cell) {
-  return cell.column - 1 >= 0;
+function checkLeft(cell, cells) {
+  return cell.column - 1 >= 0 && cells[cell.column - 1] > -1;
 }
 
 /**
@@ -47,11 +52,11 @@ function checkLeft(cell) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @param {number} width Cell array number of columns
- * @returns {boolean} True if right cell is in range, false otherwise
+ * @param {Array.<number>} cells Cell array
+ * @returns {boolean} True if right cell is in available, false otherwise
  */
-function checkRight(cell, width) {
-  return cell.column + 1 < width >= 0;
+function checkRight(cell, cells) {
+  return cell.column + 1 < cells[0].length >= 0 && cells[cell.column + 1] > -1;
 }
 
 /**
@@ -59,10 +64,11 @@ function checkRight(cell, width) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @returns {boolean} True if top cell is in range, false otherwise
+ * @param {Array.<number>} cells Cell array
+ * @returns {boolean} True if top cell is in available, false otherwise
  */
-function checkTop(cell) {
-  return cell.row - 1 >= 0;
+function checkTop(cell, cells) {
+  return cell.row - 1 >= 0 && cells[cell.row - 1] > -1;
 }
 
 /**
@@ -70,11 +76,11 @@ function checkTop(cell) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @param {number} height Cell array number of rows
- * @returns {boolean} True if bottom cell is in range, false otherwise
+ * @param {Array.<number>} cells Cell array
+ * @returns {boolean} True if bottom cell is in available, false otherwise
  */
-function checkBottom(cell, height) {
-  return cell.row + 1 < height;
+function checkBottom(cell, cells) {
+  return cell.row + 1 < cells.length && cells[cell.row + 1] > -1;
 }
 
 /**
@@ -82,14 +88,15 @@ function checkBottom(cell, height) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
+ * @param {Array.<number>} cells Cell array
  * @returns {object} leftCell Left cell
  * @returns {object} leftCell.row Left cell row index
  * @returns {object} leftCell.column Left cell column index
  */
-function getLeft(cell) {
+function getLeft(cell, cells) {
   return {
     row: cell.row,
-    column: checkLeft(cell) ? cell.column - 1 : null
+    column: checkLeft(cell, cells) ? cell.column - 1 : null
   };
 }
 
@@ -98,15 +105,15 @@ function getLeft(cell) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @param {number} width Cell array number of columns
+ * @param {Array.<number>} cells Cell array
  * @returns {object} rightCell Right cell
  * @returns {object} rightCell.row Right cell row index
  * @returns {object} rightCell.column Right cell column index
  */
-function getRight(cell, width) {
+function getRight(cell, cells) {
   return {
     row: cell.row,
-    column: checkRight(cell, width) ? cell.column + 1 : null
+    column: checkRight(cell, cells) ? cell.column + 1 : null
   };
 }
 
@@ -115,13 +122,14 @@ function getRight(cell, width) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
+ * @param {Array.<number>} cells Cell array
  * @returns {object} topCell Top cell
  * @returns {object} topCell.row Top cell row index
  * @returns {object} topCell.column Top cell column index
  */
-function getTop(cell) {
+function getTop(cell, cells) {
   return {
-    row: checkTop(cell) ? cell.row - 1 : null,
+    row: checkTop(cell, cells) ? cell.row - 1 : null,
     column: cell.column
   };
 }
@@ -131,71 +139,49 @@ function getTop(cell) {
  * @param {object} cell Cell
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
- * @param {number} height Cell array number of rows
+ * @param {Array.<number>} cells Cell array
  * @returns {object} BottomCell Bottom cell
  * @returns {object} BottomCell.row Bottom cell row index
  * @returns {object} BottomCell.column Bottom cell column index
  */
-function getBottom(cell, height) {
+function getBottom(cell, cells) {
   return {
-    row: checkBottom(cell, height) ? cell.row + 1 : null,
+    row: checkBottom(cell, cells) ? cell.row + 1 : null,
     column: cell.column
   };
 }
 
 /**
- * Path direction
- */
-const Direction = {
-  Left: 'left',
-  Right: 'right',
-  Up: 'up',
-  Down: 'down'
-};
-
-/**
- * Get all open direction from start cell
+ * Get all open adjacent cells from start cell
  * @param {object} start Starting cell
  * @param {object} start.row Starting cell row index
  * @param {object} start.column Starting cell column index
- * @param {Array.<number>} cells Cell name array
+ * @param {Array.<number>} cells Cell array
+ * @returns {Array.<number>} adjacentCells Adjacent cells
  */
-function getStartDirections(start, cells) {
-  const startDirections = [];
-  if (checkLeft(start)) {
-    startDirections.push(Direction.Left);
+function getAvailableAdjacentCells(start, cells) {
+  const adjacentCells = [];
+  if (checkLeft(start, cells)) {
+    adjacentCells.push(getLeft(start, cells));
   }
-  if (checkRight(start, cells[0].length)) {
-    startDirections.push(Direction.Right);
+  if (checkRight(start, cells)) {
+    adjacentCells.push(getRight(start, cells));
   }
-  if (checkTop(start)) {
-    startDirections.push(Direction.Up);
+  if (checkTop(start, cells)) {
+    adjacentCells.push(getTop(start, cells));
   }
-  if (checkBottom(start, cells.length)) {
-    startDirections.push(Direction.Down);
+  if (checkBottom(start, cells)) {
+    adjacentCells.push(getBottom(start, cells));
   }
-  return startDirections;
+  return adjacentCells;
 }
 
-function getTranslatedDirection(direction, currentCell, cells) {
-  switch (direction) {
-    case Direction.Right:
-      return getRight(currentCell, cells[0].length);
-    case Direction.Up:
-      return getTop(currentCell);
-    case Direction.Down:
-      return getBottom(currentCell, cells.length);
-    default:
-      return getLeft(currentCell);
-  }
-}
-
-function compareCells(cell1, cell2) {
+export function compareCells(cell1, cell2) {
   return cell1.row === cell2.row && cell1.column === cell2.column;
 }
 
 /**
- * Check if there is a path from start cell to destination cell
+ * Find a path from start cell to destination cell
  * @param {object} start Starting cell
  * @param {object} start.row Starting cell row index
  * @param {object} start.column Starting cell column index
@@ -205,68 +191,25 @@ function compareCells(cell1, cell2) {
  * @param {Array.<number>} cells Cell name array
  * @returns {boolean} True if the path is valid, false otherwise
  */
-export function checkPath(start, end, cells) {
-  const startDirections = getStartDirections(start, cells);
+export function findPath(start, end, cells) {
+  //BFS algo
+  const queue = [start];
+  const discovered = [start];
   const path = [];
-  const width = cells[0].length;
-  const height = cells.length;
-
-  let found = false;
-  for (let i = 0; i < startDirections.length; i++) {
-    found = false;
-    for (let step = 0; !found && step < 2; step++) {
-      let currentCell = null;
-      switch (startDirections[i]) {
-        case Direction.Right:
-          for (currentCell = getRight(getRight(start, width), width); currentCell.column < end.column; currentCell.column++) {
-            if (compareCells(getRight(currentCell, width), end)) {
-              found = true;
-              break;
-            } else if (!checkRight(currentCell)) {
-              break;
-            }
-            path.push(currentCell);
-          }
-          break;
-        case Direction.Up:
-          for (currentCell = getTop(getTop(start)); currentCell.row > end.row; currentCell.row--) {
-            if (compareCells(getTop(currentCell), end)) {
-              found = true;
-              break;
-            } else if (!checkTop(currentCell)) {
-              break;
-            }
-            path.push(currentCell);
-          }
-          break;
-        case Direction.Down:
-          for (currentCell = getBottom(getBottom(start, height), height); currentCell.row < end.row; currentCell.row++) {
-            if (compareCells(getBottom(currentCell, height), end)) {
-              found = true;
-              break;
-            } else if (!checkBottom(currentCell)) {
-              break;
-            }
-            path.push(currentCell);
-          }
-          break;
-        default:
-          for (currentCell = getLeft(getLeft(start)); currentCell.column > end.column; currentCell.column--) {
-            if (compareCells(getLeft(currentCell), end)) {
-              found = true;
-              break;
-            } else if (!checkLeft(currentCell)) {
-              break;
-            }
-            path.push(currentCell);
-          }
-          break;
+  while (queue.length > 0) {
+    let currentCell = queue.shift();
+    if (compareCells(currentCell, end)) {
+      path.push(currentCell);
+      return path;
+    }
+    const adjacentCells = getAvailableAdjacentCells(currentCell, cells);
+    for (let i = 0; i < adjacentCells.length; i++) {
+      if (discovered.some(cell => compareCells(cell, adjacentCells[i]))) {
+        discovered.push(adjacentCells[i]);
+        path.push(adjacentCells[i]);
+        queue.push(adjacentCells[i]);
       }
     }
-    if (found) {
-      break;
-    }
   }
-
-  return found;
+  return path;
 }

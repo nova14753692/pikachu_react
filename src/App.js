@@ -1,12 +1,17 @@
 import React from 'react';
 
+import { GameSceneContextProvider } from './contexts/GameSceneContext';
+
 import GameScene from './component/GameScene';
+
 
 function App() {
   return (
-    <div style={styles.root}>
-      <GameScene />
-    </div>
+    <GameSceneContextProvider>
+      <div style={styles.root}>
+        <GameScene />
+      </div>
+    </GameSceneContextProvider>
   );
 }
 

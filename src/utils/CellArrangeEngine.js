@@ -16,6 +16,12 @@ export function getCellArray(width, height, wrapArray = true) {
       }
     }
   }
+  if (wrapArray) {
+    cells[height - 1] = Array(width).fill(-1);
+    for (let i = 1; i < height - 1; i++) {
+      cells[i][width - 1] = -1;
+    }
+  }
 
   // stack contains {row: index, column: index}
   const stack = [];
@@ -138,6 +144,16 @@ function getBottom(cell, height) {
 }
 
 /**
+ * Path direction
+ */
+const Direction = {
+  Left: 'left',
+  Right: 'right',
+  Up: 'up',
+  Down: 'down'
+};
+
+/**
  * Get all open direction from start cell
  * @param {object} start Starting cell
  * @param {object} start.row Starting cell row index
@@ -147,18 +163,35 @@ function getBottom(cell, height) {
 function getStartDirections(start, cells) {
   const startDirections = [];
   if (checkLeft(start)) {
-    startDirections.push(getLeft(start));
+    startDirections.push(Direction.Left);
   }
   if (checkRight(start, cells[0].length)) {
-    startDirections.push(getRight(start, cells[0].length));
+    startDirections.push(Direction.Right);
   }
   if (checkTop(start)) {
-    startDirections.push(getTop(start));
+    startDirections.push(Direction.Up);
   }
   if (checkBottom(start, cells.length)) {
-    startDirections.push(getBottom(start, cells.length));
+    startDirections.push(Direction.Down);
   }
   return startDirections;
+}
+
+function getTranslatedDirection(direction, currentCell, cells) {
+  switch (direction) {
+    case Direction.Right:
+      return getRight(currentCell, cells[0].length);
+    case Direction.Up:
+      return getTop(currentCell);
+    case Direction.Down:
+      return getBottom(currentCell, cells.length);
+    default:
+      return getLeft(currentCell);
+  }
+}
+
+function compareCells(cell1, cell2) {
+  return cell1.row === cell2.row && cell1.column === cell2.column;
 }
 
 /**
@@ -170,7 +203,70 @@ function getStartDirections(start, cells) {
  * @param {object} end.row Destination cell row index 
  * @param {object} end.column Destination cell column index
  * @param {Array.<number>} cells Cell name array
+ * @returns {boolean} True if the path is valid, false otherwise
  */
 export function checkPath(start, end, cells) {
   const startDirections = getStartDirections(start, cells);
+  const path = [];
+  const width = cells[0].length;
+  const height = cells.length;
+
+  let found = false;
+  for (let i = 0; i < startDirections.length; i++) {
+    found = false;
+    for (let step = 0; !found && step < 2; step++) {
+      let currentCell = null;
+      switch (startDirections[i]) {
+        case Direction.Right:
+          for (currentCell = getRight(getRight(start, width), width); currentCell.column < end.column; currentCell.column++) {
+            if (compareCells(getRight(currentCell, width), end)) {
+              found = true;
+              break;
+            } else if (!checkRight(currentCell)) {
+              break;
+            }
+            path.push(currentCell);
+          }
+          break;
+        case Direction.Up:
+          for (currentCell = getTop(getTop(start)); currentCell.row > end.row; currentCell.row--) {
+            if (compareCells(getTop(currentCell), end)) {
+              found = true;
+              break;
+            } else if (!checkTop(currentCell)) {
+              break;
+            }
+            path.push(currentCell);
+          }
+          break;
+        case Direction.Down:
+          for (currentCell = getBottom(getBottom(start, height), height); currentCell.row < end.row; currentCell.row++) {
+            if (compareCells(getBottom(currentCell, height), end)) {
+              found = true;
+              break;
+            } else if (!checkBottom(currentCell)) {
+              break;
+            }
+            path.push(currentCell);
+          }
+          break;
+        default:
+          for (currentCell = getLeft(getLeft(start)); currentCell.column > end.column; currentCell.column--) {
+            if (compareCells(getLeft(currentCell), end)) {
+              found = true;
+              break;
+            } else if (!checkLeft(currentCell)) {
+              break;
+            }
+            path.push(currentCell);
+          }
+          break;
+      }
+    }
+    if (found) {
+      break;
+    }
+  }
+
+  return found;
 }

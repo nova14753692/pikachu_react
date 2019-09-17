@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { gameSceneSize } from '../utils/Utils';
-import { getCellArray } from '../utils/CellArrangeEngine';
+import { getCellArray, checkPath } from '../utils/CellArrangeEngine';
 
 import Cell from './Cell';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { gameSceneSize } from '../utils/Utils';
-import getCellArray from '../utils/CellArrangeEngine';
+import { getCellArray } from '../utils/CellArrangeEngine';
 
 import Cell from './Cell';
 
@@ -11,7 +11,7 @@ function GameScene() {
 
   function createCellRowwidth(rowIndex, width) {
     const row = [];
-    for (let i = 0; i < width; i++) {
+    for (let i = 1; i < width + 1; i++) {
       row.push(<Cell name={cellNameArray[rowIndex][i]} />);
     }
     return row;
@@ -19,7 +19,7 @@ function GameScene() {
 
   function createCellArray(height) {
     const cellArray = [];
-    for (let i = 0; i < height; i++) {
+    for (let i = 1; i < height + 1; i++) {
       cellArray.push(
         <div style={styles.cellRow}>
           {createCellRowwidth(i, 16)}

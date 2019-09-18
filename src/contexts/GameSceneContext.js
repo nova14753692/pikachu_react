@@ -8,7 +8,8 @@ const GameSceneContext = React.createContext([{}, () => { }]);
 const GameSceneContextProvider = (props) => {
   const [state, setState] = useState({
     selections: [],
-    cellNameArray: getCellArray(16, 8)
+    cellNameArray: getCellArray(16, 8),
+    path: [],
   });
 
   return (

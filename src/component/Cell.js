@@ -6,6 +6,8 @@ import { gameSceneSize } from '../utils/Utils';
 import { findPath, compareCells } from '../utils/CellArrangeEngine';
 import Colors from '../utils/Colors';
 
+import PathCell from './PathCell';
+
 /**
  * Cell component
  * @param {object} props Cell props
@@ -35,12 +37,14 @@ function Cell(props) {
         const start = context.selections[0];
         const end = context.selections[1];
         const path = findPath(start, end, context.cellNameArray);
-        if (path.length > 0) {
+        if (path.length > 1) {
           context.cellNameArray[start.row][start.column] = -1;
           context.cellNameArray[end.row][end.column] = -1;
           setContext({
             ...context,
-            cellNameArray: context.cellNameArray
+            cellNameArray: context.cellNameArray,
+            selections: [],
+            path,
           });
         } else {
           setContext({
@@ -57,7 +61,8 @@ function Cell(props) {
       style={{ ...styles.root, backgroundColor: getBackgroundColor() }}
       onClick={cellClickHandler}
     >
-      <img style={styles.cellImg} src={require('../assets/cell_icons/' + props.name + '.png')} />
+      <img style={styles.cellImg} src={props.name >= 0 ? require('../assets/cell_icons/' + props.name + '.png') : null} />
+      <PathCell cellInfo={props.cellInfo} />
     </div>
   );
 }
@@ -71,7 +76,8 @@ const styles = {
     width: gameSceneSize.width / 16,
     height: gameSceneSize.height / 8,
     border: '1px solid white',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    position: 'relative'
   },
   cellImg: {
     maxWidth: '100%',

@@ -11,7 +11,7 @@ import Cell from './Cell';
 function GameScene() {
   const [context, setContext] = useContext(GameSceneContext);
 
-  function createCellRowwidth(rowIndex, width) {
+  function createCellRowWidth(rowIndex, width) {
     const row = [];
     for (let i = 1; i < width + 1; i++) {
       row.push(<Cell name={context.cellNameArray[rowIndex][i]} cellInfo={getCell(rowIndex, i)} />);
@@ -24,7 +24,7 @@ function GameScene() {
     for (let i = 1; i < height + 1; i++) {
       cellArray.push(
         <div style={styles.cellRow}>
-          {createCellRowwidth(i, 16)}
+          {createCellRowWidth(i, 16)}
         </div>
       );
     }
@@ -44,6 +44,7 @@ const styles = {
     height: gameSceneSize.height,
     backgroundColor: 'black',
     border: '2px solid white',
+    position: 'absolute'
   },
   cellRow: {
     display: 'flex',

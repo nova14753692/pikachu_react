@@ -23,12 +23,33 @@ export function getCellArray(width, height, wrapArray = true) {
     }
   }
 
+  cells[1][1] = cells[1][3];
+
   // stack contains {row: index, column: index}
-  const stack = [];
+  // const stack = [];
 
   // TODO: Optimize algorithm for difficulty level and guarantee path
 
   return cells;
+}
+
+export const Direction = {
+  Left: 'Left',
+  Right: 'Right',
+  Up: 'Up',
+  Down: 'Down'
+};
+
+export function getDirection(currentCell, nextCell) {
+  if (currentCell.column - 1 === nextCell.column) {
+    return Direction.Left;
+  } else if (currentCell.column + 1 === nextCell.column) {
+    return Direction.Right;
+  } else if (currentCell.row - 1 === nextCell.row) {
+    return Direction.Up;
+  } else {
+    return Direction.Down;
+  }
 }
 
 export function getCell(row, column) {
@@ -41,10 +62,12 @@ export function getCell(row, column) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {boolean} True if left cell is in available, false otherwise
  */
-function checkLeft(cell, cells) {
-  return cell.column - 1 >= 0 && cells[cell.column - 1] > -1;
+function checkLeft(cell, cells, compareValue) {
+  return cell.column - 1 >= 0 && (cells[cell.row][cell.column - 1] < 0 ||
+    cells[cell.row][cell.column - 1] === compareValue);
 }
 
 /**
@@ -53,10 +76,12 @@ function checkLeft(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {boolean} True if right cell is in available, false otherwise
  */
-function checkRight(cell, cells) {
-  return cell.column + 1 < cells[0].length >= 0 && cells[cell.column + 1] > -1;
+function checkRight(cell, cells, compareValue) {
+  return cell.column + 1 < cells[0].length && (cells[cell.row][cell.column + 1] < 0 ||
+    cells[cell.row][cell.column + 1] === compareValue);
 }
 
 /**
@@ -65,10 +90,12 @@ function checkRight(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {boolean} True if top cell is in available, false otherwise
  */
-function checkTop(cell, cells) {
-  return cell.row - 1 >= 0 && cells[cell.row - 1] > -1;
+function checkTop(cell, cells, compareValue) {
+  return cell.row - 1 >= 0 && (cells[cell.row - 1][cell.column] < 0 ||
+    cells[cell.row - 1][cell.column] === compareValue);
 }
 
 /**
@@ -77,10 +104,12 @@ function checkTop(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {boolean} True if bottom cell is in available, false otherwise
  */
-function checkBottom(cell, cells) {
-  return cell.row + 1 < cells.length && cells[cell.row + 1] > -1;
+function checkBottom(cell, cells, compareValue) {
+  return cell.row + 1 < cells.length && (cells[cell.row + 1][cell.column] < 0 ||
+    cells[cell.row + 1][cell.column] === compareValue);
 }
 
 /**
@@ -89,14 +118,15 @@ function checkBottom(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {object} leftCell Left cell
  * @returns {object} leftCell.row Left cell row index
  * @returns {object} leftCell.column Left cell column index
  */
-function getLeft(cell, cells) {
+function getLeft(cell, cells, compareValue) {
   return {
     row: cell.row,
-    column: checkLeft(cell, cells) ? cell.column - 1 : null
+    column: checkLeft(cell, cells, compareValue) ? cell.column - 1 : null
   };
 }
 
@@ -106,14 +136,15 @@ function getLeft(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {object} rightCell Right cell
  * @returns {object} rightCell.row Right cell row index
  * @returns {object} rightCell.column Right cell column index
  */
-function getRight(cell, cells) {
+function getRight(cell, cells, compareValue) {
   return {
     row: cell.row,
-    column: checkRight(cell, cells) ? cell.column + 1 : null
+    column: checkRight(cell, cells, compareValue) ? cell.column + 1 : null
   };
 }
 
@@ -123,13 +154,14 @@ function getRight(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {object} topCell Top cell
  * @returns {object} topCell.row Top cell row index
  * @returns {object} topCell.column Top cell column index
  */
-function getTop(cell, cells) {
+function getTop(cell, cells, compareValue) {
   return {
-    row: checkTop(cell, cells) ? cell.row - 1 : null,
+    row: checkTop(cell, cells, compareValue) ? cell.row - 1 : null,
     column: cell.column
   };
 }
@@ -140,13 +172,14 @@ function getTop(cell, cells) {
  * @param {object} cell.row Cell row index
  * @param {object} cell.column Cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {object} BottomCell Bottom cell
  * @returns {object} BottomCell.row Bottom cell row index
  * @returns {object} BottomCell.column Bottom cell column index
  */
-function getBottom(cell, cells) {
+function getBottom(cell, cells, compareValue) {
   return {
-    row: checkBottom(cell, cells) ? cell.row + 1 : null,
+    row: checkBottom(cell, cells, compareValue) ? cell.row + 1 : null,
     column: cell.column
   };
 }
@@ -157,21 +190,22 @@ function getBottom(cell, cells) {
  * @param {object} start.row Starting cell row index
  * @param {object} start.column Starting cell column index
  * @param {Array.<number>} cells Cell array
+ * @param {number} compareValue Cell value
  * @returns {Array.<number>} adjacentCells Adjacent cells
  */
-function getAvailableAdjacentCells(start, cells) {
+function getAvailableAdjacentCells(start, cells, compareValue) {
   const adjacentCells = [];
-  if (checkLeft(start, cells)) {
-    adjacentCells.push(getLeft(start, cells));
+  if (checkLeft(start, cells, compareValue)) {
+    adjacentCells.push(getLeft(start, cells, compareValue));
   }
-  if (checkRight(start, cells)) {
-    adjacentCells.push(getRight(start, cells));
+  if (checkRight(start, cells, compareValue)) {
+    adjacentCells.push(getRight(start, cells, compareValue));
   }
-  if (checkTop(start, cells)) {
-    adjacentCells.push(getTop(start, cells));
+  if (checkTop(start, cells, compareValue)) {
+    adjacentCells.push(getTop(start, cells, compareValue));
   }
-  if (checkBottom(start, cells)) {
-    adjacentCells.push(getBottom(start, cells));
+  if (checkBottom(start, cells, compareValue)) {
+    adjacentCells.push(getBottom(start, cells, compareValue));
   }
   return adjacentCells;
 }
@@ -192,24 +226,71 @@ export function compareCells(cell1, cell2) {
  * @returns {boolean} True if the path is valid, false otherwise
  */
 export function findPath(start, end, cells) {
-  //BFS algo
-  const queue = [start];
-  const discovered = [start];
-  const path = [];
-  while (queue.length > 0) {
-    let currentCell = queue.shift();
-    if (compareCells(currentCell, end)) {
-      path.push(currentCell);
-      return path;
-    }
-    const adjacentCells = getAvailableAdjacentCells(currentCell, cells);
-    for (let i = 0; i < adjacentCells.length; i++) {
-      if (discovered.some(cell => compareCells(cell, adjacentCells[i]))) {
-        discovered.push(adjacentCells[i]);
-        path.push(adjacentCells[i]);
-        queue.push(adjacentCells[i]);
+  function findMin(dist, q) {
+    let u = null;
+    let min = Number.MAX_VALUE;
+    for (let i = 0; i < q.length; i++) {
+      if (dist[q[i].row][q[i].column] < min) {
+        min = dist[q[i].row][q[i].column];
+        u = {
+          row: q[i].row,
+          column: q[i].column,
+          index: i
+        };
       }
     }
+    return u;
   }
+
+  //Dijkstra algo
+  function dijkstra() {
+    const q = [];
+    const prev = [];
+    const dist = [];
+    for (let i = 0; i < cells.length; i++) {
+      dist.push([]);
+      prev.push([]);
+      for (let j = 0; j < cells[0].length; j++) {
+        dist[i][j] = Number.MAX_VALUE - 1;
+        prev[i][j] = null;
+        q.push({ row: i, column: j });
+      }
+    }
+    dist[start.row][start.column] = 0;
+    let k = null;
+    while (q.length > 0) {
+      let u = findMin(dist, q);
+      u = u == null ? start : u;
+      if (compareCells(u, end)) {
+        prev[u.row][u.column] = k;
+        break;
+      }
+      k = u;
+      q.splice(u.index, 1);
+      const neighbors = getAvailableAdjacentCells(u, cells, cells[start.row][start.column]);
+      for (let i = 0; i < neighbors.length; i++) {
+        const v = neighbors[i];
+        if (q.some(cell => compareCells(v, cell))) {
+          const alt = dist[u.row][u.column] + 1;
+          if (alt < dist[v.row][v.column]) {
+            dist[v.row][v.column] = alt;
+            prev[v.row][v.column] = u;
+          }
+        }
+      }
+    }
+    return { dist, prev };
+  }
+
+  const path = [];
+  const result = dijkstra();
+  let u = end;
+  if (result.prev[u.row][u.column] != null || compareCells(u, start)) {
+    while (u != null) {
+      path.push(u);
+      u = result.prev[u.row][u.column];
+    }
+  }
+
   return path;
 }

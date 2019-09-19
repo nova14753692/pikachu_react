@@ -10,6 +10,7 @@ const GameSceneContextProvider = (props) => {
     selections: [],
     cellNameArray: getCellArray(16, 8),
     path: [],
+    turnStepLimit: 3
   });
 
   return (

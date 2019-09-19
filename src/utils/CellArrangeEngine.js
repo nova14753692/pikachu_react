@@ -226,7 +226,19 @@ export function findCellIndex(cell, path) {
 }
 
 export function countTurnSteps(path) {
-  
+  const directions = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    if (path[i].column - 1 === path[i + 1].column && directions[directions.length - 1] !== Direction.Left) {
+      directions.push(Direction.Left);
+    } else if (path[i].column + 1 === path[i + 1].column && directions[directions.length - 1] !== Direction.Right) {
+      directions.push(Direction.Right);
+    } else if (path[i].row - 1 === path[i + 1].row && directions[directions.length - 1] !== Direction.Up) {
+      directions.push(Direction.Up);
+    } else if (path[i].row + 1 === path[i + 1].row && directions[directions.length - 1] !== Direction.Down) {
+      directions.push(Direction.Down);
+    }
+  }
+  return directions.length;
 }
 
 /**
@@ -237,12 +249,11 @@ export function countTurnSteps(path) {
  * @param {object} end Destination cell
  * @param {object} end.row Destination cell row index 
  * @param {object} end.column Destination cell column index
- * @param {Array.<number>} cells Cell name array
+ * @param {array.<number>} cells Cell name array
  * @param {boolean} reverse Return path is reverse if True, False otherwise
- * @param {number} limitStep Limit number of turn steps allow
- * @returns {boolean} True if the path is valid, false otherwise
+ * @returns {array.<cell>} Path contains cells
  */
-export function findPath(start, end, cells, reverse = false, limitStep = 3) {
+export function findPath(start, end, cells, reverse = false) {
   function findMin(dist, q) {
     let u = null;
     let min = Number.MAX_VALUE;
@@ -274,6 +285,7 @@ export function findPath(start, end, cells, reverse = false, limitStep = 3) {
       }
     }
     dist[start.row][start.column] = 0;
+    let k = start;
     while (q.length > 0) {
       let u = findMin(dist, q);
       u = u == null ? start : u;
@@ -289,6 +301,7 @@ export function findPath(start, end, cells, reverse = false, limitStep = 3) {
           if (alt < dist[v.row][v.column]) {
             dist[v.row][v.column] = alt;
             prev[v.row][v.column] = u;
+            k = u;
           }
         }
       }
@@ -306,5 +319,5 @@ export function findPath(start, end, cells, reverse = false, limitStep = 3) {
     }
   }
 
-  return path;
+  return reverse === true ? path.reverse() : path;
 }

@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { GameSceneContext } from '../contexts/GameSceneContext';
 
 import { cellSize } from '../utils/Utils';
-import { Direction, getDirection, findPath, findCellIndex } from '../utils/CellArrangeEngine';
+import { Direction, getDirection, findPath, findCellIndex, countTurnSteps } from '../utils/CellArrangeEngine';
 import Colors from '../utils/Colors';
 
 
@@ -98,7 +98,7 @@ function PathCell(props) {
         const start = context.selections[0];
         const end = context.selections[1];
         const path = findPath(start, end, context.cellNameArray);
-        if (path.length > 1) {
+        if (path.length > 1 && countTurnSteps(path) <= context.turnStepLimit) {
           context.cellNameArray[start.row][start.column] = -1;
           context.cellNameArray[end.row][end.column] = -1;
           setContext({

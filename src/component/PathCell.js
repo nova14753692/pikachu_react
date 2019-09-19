@@ -2,9 +2,10 @@ import React, { useContext } from 'react';
 
 import { GameSceneContext } from '../contexts/GameSceneContext';
 
-import { gameSceneSize } from '../utils/Utils';
-import { Direction, compareCells, getDirection } from '../utils/CellArrangeEngine';
+import { cellSize } from '../utils/Utils';
+import { Direction, getDirection, findPath, findCellIndex } from '../utils/CellArrangeEngine';
 import Colors from '../utils/Colors';
+
 
 /**
  * Cell component
@@ -17,69 +18,109 @@ function PathCell(props) {
   function createPath() {
     const strokeWidth = 5;
     const strokeColor = 'green';
-    switch (getPathDirection()) {
-      case Direction.Right:
-        return (
-          <svg viewBox="0 0 100 100">
-            <line x1="50"
-              y1={50 - strokeWidth / 2}
-              x2="100"
-              y2={50 - strokeWidth / 2}
-              stroke={strokeColor}
-              strokeWidth={strokeWidth} />
-          </svg>
-        );
-      case Direction.Up:
-        return (
-          <svg viewBox="0 0 100 100">
-            <line x1={50 - strokeWidth / 2}
-              y1="50"
-              x2={50 - strokeWidth / 2}
-              y2="0"
-              stroke={strokeColor}
-              strokeWidth={strokeWidth} />
-          </svg>
-        );
-      case Direction.Down:
-        return (
-          <svg viewBox="0 0 100 100">
-            <line x1={50 - strokeWidth / 2}
-              y1="50"
-              x2={50 - strokeWidth / 2}
-              y2="0"
-              stroke={strokeColor}
-              strokeWidth={strokeWidth} />
-          </svg>
-        );
-      case Direction.Left:
-        return (
-          <svg viewBox="0 0 100 100">
-            <line x1="50"
-              y1={50 - strokeWidth / 2}
-              x2="0"
-              y2={50 - strokeWidth / 2}
-              stroke={strokeColor}
-              strokeWidth={strokeWidth} />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  }
-
-  function getPathDirection() {
+    const lines = [];
     if (props.cellInfo != null) {
-      for (let i = 0; i < context.path.length; i++) {
-        if (compareCells(props.cellInfo, context.path[i])) {
-          return getDirection(props.cellInfo, context.path[i]);
-        }
+      const cellIndex = findCellIndex(props.cellInfo, context.path);
+      if (cellIndex >= 0) {
+        getDirection(cellIndex, context.path).forEach(direction => {
+          switch (direction) {
+            case Direction.Right:
+              lines.push(<line x1={50 - strokeWidth / 2}
+                y1={50}
+                x2="100"
+                y2={50}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth} />
+              );
+              break;
+            case Direction.Up:
+              lines.push(<line x1={50}
+                y1={50}
+                x2={50}
+                y2="0"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth} />
+              );
+              break;
+            case Direction.Down:
+              lines.push(<line x1={50}
+                y1={50}
+                x2={50}
+                y2="100"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth} />
+              );
+              break;
+            default:
+              lines.push(<line x1={50 + strokeWidth / 2}
+                y1={50}
+                x2="0"
+                y2={50}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth} />
+              );
+          }
+        });
+        return (
+          <svg viewBox="0 0 100 100">
+            {lines}
+          </svg>
+        );
       }
     }
     return null;
   }
 
+  function getPathCellPosition() {
+    if (props.cellInfo != null) {
+      return {
+        top: props.cellInfo.row * cellSize.width,
+        left: props.cellInfo.column * cellSize.height
+      };
+    }
+    return {
+      top: 0,
+      left: 0
+    };
+  }
+
+  function cellClickHandler() {
+    if (props.cellInfo != null && context.cellNameArray[props.cellInfo.row][props.cellInfo.column] >= 0) {
+      if (context.selections.length < 1) {
+        context.selections.push(props.cellInfo);
+        setContext({
+          ...context,
+          selections: context.selections,
+          path: []
+        });
+      } else if (context.selections.length < 2) {
+        context.selections.push(props.cellInfo);
+        const start = context.selections[0];
+        const end = context.selections[1];
+        const path = findPath(start, end, context.cellNameArray);
+        if (path.length > 1) {
+          context.cellNameArray[start.row][start.column] = -1;
+          context.cellNameArray[end.row][end.column] = -1;
+          setContext({
+            ...context,
+            cellNameArray: context.cellNameArray,
+            selections: [],
+            path,
+          });
+        } else {
+          setContext({
+            ...context,
+            selections: []
+          });
+        }
+      }
+    }
+  }
+
   return (
-    <div style={styles.root}>
+    <div style={{ ...styles.root, ...getPathCellPosition() }}
+      onClick={cellClickHandler}
+    >
       {createPath()}
     </div>
   );
@@ -87,10 +128,8 @@ function PathCell(props) {
 
 const styles = {
   root: {
-    top: -1,
-    left: -1,
-    width: gameSceneSize.width / 16 + 1,
-    height: gameSceneSize.height / 8 + 1,
+    width: cellSize.width,
+    height: cellSize.height,
     backgroundColor: 'transparent',
     position: 'absolute'
   },

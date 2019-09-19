@@ -23,11 +23,6 @@ export function getCellArray(width, height, wrapArray = true) {
     }
   }
 
-  cells[1][1] = cells[1][3];
-
-  // stack contains {row: index, column: index}
-  // const stack = [];
-
   // TODO: Optimize algorithm for difficulty level and guarantee path
 
   return cells;
@@ -40,16 +35,24 @@ export const Direction = {
   Down: 'Down'
 };
 
-export function getDirection(currentCell, nextCell) {
-  if (currentCell.column - 1 === nextCell.column) {
-    return Direction.Left;
-  } else if (currentCell.column + 1 === nextCell.column) {
-    return Direction.Right;
-  } else if (currentCell.row - 1 === nextCell.row) {
-    return Direction.Up;
-  } else {
-    return Direction.Down;
+export function getDirection(currentCellIndex, path) {
+  const currentCell = path[currentCellIndex];
+  const prevCell = path[currentCellIndex + 1] == null ? currentCell : path[currentCellIndex + 1];
+  const nextCell = path[currentCellIndex - 1] == null ? currentCell : path[currentCellIndex - 1];
+  const compareCells = [prevCell, nextCell];
+  const directions = [];
+  for (let i = 0; i < compareCells.length; i++) {
+    if (currentCell.column - 1 === compareCells[i].column) {
+      directions.push(Direction.Left);
+    } else if (currentCell.column + 1 === compareCells[i].column) {
+      directions.push(Direction.Right);
+    } else if (currentCell.row - 1 === compareCells[i].row) {
+      directions.push(Direction.Up);
+    } else if (currentCell.row + 1 === compareCells[i].row) {
+      directions.push(Direction.Down);
+    }
   }
+  return directions;
 }
 
 export function getCell(row, column) {
@@ -214,6 +217,18 @@ export function compareCells(cell1, cell2) {
   return cell1.row === cell2.row && cell1.column === cell2.column;
 }
 
+export function containsCells(cell, path) {
+  return path.some(c => compareCells(c, cell));
+}
+
+export function findCellIndex(cell, path) {
+  return path.findIndex(c => compareCells(c, cell));
+}
+
+export function countTurnSteps(path) {
+  
+}
+
 /**
  * Find a path from start cell to destination cell
  * @param {object} start Starting cell
@@ -223,9 +238,11 @@ export function compareCells(cell1, cell2) {
  * @param {object} end.row Destination cell row index 
  * @param {object} end.column Destination cell column index
  * @param {Array.<number>} cells Cell name array
+ * @param {boolean} reverse Return path is reverse if True, False otherwise
+ * @param {number} limitStep Limit number of turn steps allow
  * @returns {boolean} True if the path is valid, false otherwise
  */
-export function findPath(start, end, cells) {
+export function findPath(start, end, cells, reverse = false, limitStep = 3) {
   function findMin(dist, q) {
     let u = null;
     let min = Number.MAX_VALUE;
@@ -257,15 +274,12 @@ export function findPath(start, end, cells) {
       }
     }
     dist[start.row][start.column] = 0;
-    let k = null;
     while (q.length > 0) {
       let u = findMin(dist, q);
       u = u == null ? start : u;
       if (compareCells(u, end)) {
-        prev[u.row][u.column] = k;
         break;
       }
-      k = u;
       q.splice(u.index, 1);
       const neighbors = getAvailableAdjacentCells(u, cells, cells[start.row][start.column]);
       for (let i = 0; i < neighbors.length; i++) {
